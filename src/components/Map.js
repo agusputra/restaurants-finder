@@ -1,27 +1,21 @@
-import React from 'react';
-import GoogleMap from 'google-map-react';
-import config from '../config'
+import React from 'react'
+import GoogleMap from 'google-map-react'
+import Marker from '../containers/Marker'
 
-const Marker = ({ title }) => (
-  <div className="pin">
-    <div className="card">
-      <div className="card-body card-text">
-        <strong>{title}</strong>
-      </div>
-    </div>
-  </div>
-)
-
-export default ({ options, locations }) => {
+export default ({ options, restaurants }) => {
   return (
-    <div style={{ height: '500px', width: '100%' }}>
+    <div className="map-container">
       <GoogleMap
-        bootstrapURLKeys={{ key: config.googleAPIKey }}
+        bootstrapURLKeys={{ key: options.APIKey }}
         defaultCenter={options.center}
         defaultZoom={options.zoom}>
         {
-          locations.map(({ id, name, lat, lng }) =>
-            <Marker key={id} lat={lat} lng={lng} title={name} />
+          restaurants.map(restaurant =>
+            <Marker
+              key={restaurant.id}
+              lat={restaurant.location.latitude}
+              lng={restaurant.location.longitude}
+              restaurant={restaurant} />
           )
         }
       </GoogleMap>

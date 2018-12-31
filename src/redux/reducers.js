@@ -3,7 +3,9 @@ import {
   REQUEST_RESTAURANTS,
   RECEIVE_RESTAURANTS,
   RECEIVE_RESTAURANTS_FROM_CACHE,
-  CACHE_RESTAURANTS
+  CACHE_RESTAURANTS,
+  SHOW_RESTAURANT_DETAILS,
+  HIGHLIGHT_RESTAURANT
 } from './actions'
 
 const restaurants = (state, action) => {
@@ -43,6 +45,23 @@ const restaurants = (state, action) => {
   }
 }
 
+const application = (state = {}, action) => {
+  switch (action.type) {
+    case SHOW_RESTAURANT_DETAILS:
+      return {
+        ...state,
+        restaurant: action.restaurant ? { ...action.restaurant } : undefined
+      }
+    case HIGHLIGHT_RESTAURANT:
+      return {
+        ...state,
+        highlightRestaurant: action.restaurant ? { ...action.restaurant } : undefined
+      }
+    default:
+      return state
+  }
+}
+
 const query = (state, action) => {
   state = state === undefined
     ? { lat: 28.6139, lng: 77.2090 }
@@ -51,4 +70,4 @@ const query = (state, action) => {
   return state
 }
 
-export default combineReducers({ restaurants, query })
+export default combineReducers({ application, restaurants, query })

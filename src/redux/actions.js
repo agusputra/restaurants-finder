@@ -5,6 +5,8 @@ export const REQUEST_RESTAURANTS = 'REQUEST_RESTAURANTS'
 export const RECEIVE_RESTAURANTS = 'RECEIVE_RESTAURANTS'
 export const RECEIVE_RESTAURANTS_FROM_CACHE = 'RECEIVE_RESTAURANTS_FROM_CACHE'
 export const CACHE_RESTAURANTS = 'CACHE_RESTAURANTS'
+export const SHOW_RESTAURANT_DETAILS = 'SHOW_RESTAURANT_DETAILS'
+export const HIGHLIGHT_RESTAURANT = 'HIGHLIGHT_RESTAURANT'
 
 const root = 'https://developers.zomato.com/api/v2.1'
 const opts = {
@@ -23,7 +25,7 @@ const cacheRestaurants = restaurants => ({ type: CACHE_RESTAURANTS, restaurants 
 
 const fetchRestaurants = (page, dispatch, getState) => {
   const { query: { lat, lng } } = getState()
-  const query = { start: (page - 1) * utils.perPageCount, count: utils.perPageCount, lat, lon: lng }
+  const query = { start: (page - 1) * config.perPageCount, count: config.perPageCount, lat, lon: lng }
 
   dispatch(requesRestaurants())
 
@@ -53,3 +55,6 @@ export const loadRestaurants = () => (dispatch, getState) => {
       .then(restaurants => dispatch(cacheRestaurants(restaurants)))
   }
 }
+
+export const showRestaurantDetails = restaurant => ({ type: SHOW_RESTAURANT_DETAILS, restaurant })
+export const highlightRestaurant = restaurant => ({ type: HIGHLIGHT_RESTAURANT, restaurant })

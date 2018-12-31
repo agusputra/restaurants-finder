@@ -1,11 +1,50 @@
-.container,
+html,
+body {
+  height: 100vh;
+  overflow-y: hidden;
+  background: black;
+}
+
 .container-fluid {
-  min-width: 1200px;
+  height: 100vh;
+  color: white;
+}
+
+.slide {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.slide .list {
+  float: left;
+  display: inline-block;
+  width: 35%;
+}
+
+.slide .map {
+  display: inline-block;
+  width: 65%;
 }
 
 .restaurant-list {
-  height: 500px;
+  background: darkcyan;
+  height: calc(100vh - 112px);
   overflow-y: auto;
+}
+
+.map-container {
+  width: 100%;
+  height: calc(100vh - 112px);
+}
+
+.restaurant-item {
+  cursor: pointer;
+}
+
+.restaurant-item:hover,
+.restaurant-item.highlight {
+  background: darkslategray;
+  transition: background-color .2s ease-in;
 }
 
 .pin {
@@ -29,13 +68,15 @@
   background: deeppink;
 }
 
-.pin:hover {
+.pin:hover,
+.pin.highlight {
   z-index: 2;
   cursor: pointer;
   border-color: green;
 }
 
-.pin:hover::after {
+.pin:hover::after,
+.pin.highlight::after {
   background: green;
 }
 
@@ -53,7 +94,8 @@
   text-align: center;
 }
 
-.pin:hover .card {
+.pin:hover .card,
+.pin.highlight .card {
   z-index: 3;
 }
 
@@ -63,6 +105,40 @@
   color: white;
 }
 
-.pin:hover .card .card-body {
+.pin:hover .card .card-body,
+.pin.highlight .card .card-body {
   background: green
+}
+
+.ReactModal__Overlay.ReactModal__Overlay--after-open {
+  overflow-y: auto !important;
+  background: rgba(0, 0, 0, .7) !important;
+}
+
+.ReactModal__Content.ReactModal__Content--after-open {
+  overflow: visible !important;
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  padding: 0 !important;
+  margin-right: -50%;
+  transform: translate(-50%, -50%);
+  width: 70vw;
+  height: 85vh;
+}
+
+@media all and (max-width: 991px) {
+  .container-fluid {
+    padding: 0;
+  }
+
+  .slide .slide-content {
+    width: 991px;
+  }
+
+  .ReactModal__Content.ReactModal__Content--after-open {
+    width: 90vw;
+    height: 90vh;
+  }
 }

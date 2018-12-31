@@ -1,10 +1,15 @@
 import React from 'react'
 import { connect } from 'react-redux'
+import RestaurantList from '../containers/RestaurantList'
+import Modal from '../components/Modal'
 import Header from '../components/Header'
-import { loadRestaurants } from '../redux/actions'
-import RestaurantList from '../components/RestaurantList'
+import RestaurantDetails from '../components/RestaurantDetails'
 import Map from '../components/Map'
-import utils from '../utils';
+import config from '../config';
+import {
+  loadRestaurants,
+  showRestaurantDetails
+} from '../redux/actions'
 
 class App extends React.Component {
   componentDidMount() {
@@ -14,36 +19,36 @@ class App extends React.Component {
   }
 
   render() {
-    const { dispatch, restaurants, query } = this.props
+    const { application, restaurants, query, dispatch } = this.props
 
     const mapOptions = {
+      APIKey: config.googleAPIKey,
       center: {
         lat: query.lat,
         lng: query.lng
       },
-      zoom: utils.mapZoom
+      zoom: config.mapZoom
     }
-
-    const locations = restaurants.items.map(restaurant => {
-      return {
-        id: restaurant.id,
-        name: restaurant.name,
-        lat: restaurant.location.latitude,
-        lng: restaurant.location.longitude
-      }
-    })
 
     return (
       <React.Fragment>
-        <div className="container">
+        <Modal
+          isOpen={application.restaurant}
+          closeModal={() => dispatch(showRestaurantDetails())}
+          body={<RestaurantDetails restaurant={application.restaurant} />} />
+        <div className="container-fluid">
           <Header />
-          <div className="row mt-3">
-            <div className="col-4">
-              <RestaurantList restaurants={restaurants} dispatch={dispatch} />
-              <p className="mt-3">Loaded {restaurants.items.length} items</p>
-            </div>
-            <div className="col-8">
-              <Map options={mapOptions} locations={locations} />
+          <div className="slide py-3">
+            <div className="slide-content">
+              <div className="list pr-2">
+                <RestaurantList />
+                <p className="mt-3">Loaded {restaurants.items.length} items</p>
+              </div>
+              <div className="map pl-0">
+                <Map
+                  options={mapOptions}
+                  restaurants={restaurants.items} />
+              </div>
             </div>
           </div>
         </div>
@@ -53,9 +58,9 @@ class App extends React.Component {
 }
 
 const mapStateToProps = (state) => {
-  const { restaurants, query } = state
+  const { application, restaurants, query } = state
 
-  return { restaurants, query }
+  return { application, restaurants, query }
 }
 
 export default connect(mapStateToProps)(App)
