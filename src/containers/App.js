@@ -1,9 +1,9 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import RestaurantList from '../containers/RestaurantList'
+import RestaurantDetails from '../containers/RestaurantDetails'
 import Modal from '../components/Modal'
 import Header from '../components/Header'
-import RestaurantDetails from '../components/RestaurantDetails'
 import Map from '../components/Map'
 import config from '../config';
 import {
