@@ -1,60 +1,83 @@
+import { createSelector } from 'reselect'
 import config from '../config'
 import utils from '../utils'
 
-export const REQUEST_RESTAURANTS = 'REQUEST_RESTAURANTS'
-export const RECEIVE_RESTAURANTS = 'RECEIVE_RESTAURANTS'
-export const RECEIVE_RESTAURANTS_FROM_CACHE = 'RECEIVE_RESTAURANTS_FROM_CACHE'
-export const CACHE_RESTAURANTS = 'CACHE_RESTAURANTS'
-export const SHOW_RESTAURANT_DETAILS = 'SHOW_RESTAURANT_DETAILS'
-export const HIGHLIGHT_RESTAURANT = 'HIGHLIGHT_RESTAURANT'
+const createAction = utils.createAction
 
-const root = 'https://developers.zomato.com/api/v2.1'
-const opts = {
-  headers: {
-    Accept: 'application/json',
-    'user-key': config.zomatoAPIKey
-  }
-}
+export const requestRestaurants = createAction('REQUEST_RESTAURANTS')
+export const receiveRestaurantsFromCache = createAction('RECEIVE_RESTAURANTS_FROM_CACHE')
+export const receiveRestaurants = createAction('RECEIVE_RESTAURANTS', 'restaurants')
+export const cacheRestaurants = createAction('CACHE_RESTAURANTS', 'restaurants')
+export const setQuery = createAction('SET_QUERY', 'query')
+export const showRestaurantDetails = createAction('SHOW_RESTAURANT_DETAILS', 'restaurant')
+export const highlightRestaurant = createAction('HIGHLIGHT_RESTAURANT', 'restaurant')
+export const setMapCenters = createAction("setMapCenters", 'lat', 'lng')
 
 const restaurantsSelector = state => state.restaurants.map(item => item.restaurant)
-
-const requesRestaurants = () => ({ type: REQUEST_RESTAURANTS })
-const receiveRestaurantsFromCache = () => ({ type: RECEIVE_RESTAURANTS_FROM_CACHE })
-const receiveRestaurants = restaurants => ({ type: RECEIVE_RESTAURANTS, restaurants })
-const cacheRestaurants = restaurants => ({ type: CACHE_RESTAURANTS, restaurants })
+const locationSelector = createSelector(restaurantsSelector, items => items[0] ? items[0].location : undefined)
 
 const fetchRestaurants = (page, dispatch, getState) => {
-  const { query: { lat, lng } } = getState()
-  const query = { start: (page - 1) * config.perPageCount, count: config.perPageCount, lat, lon: lng }
+  const root = 'https://developers.zomato.com/api/v2.1'
+  const opts = {
+    headers: {
+      Accept: 'application/json',
+      'user-key': config.zomatoAPIKey
+    }
+  }
 
-  dispatch(requesRestaurants())
+  let { query, restaurants: { nextPage } } = getState()
+
+  if (!query.q && nextPage === 1) {
+    query.lat = 28.6139
+    query.lon = 77.2090
+
+    dispatch(setQuery(query))
+  }
+
+  query = { start: (page - 1) * config.perPageCount, count: config.perPageCount, ...query }
+
+  dispatch(requestRestaurants())
 
   return fetch(utils.getUrl(root, 'search', query), opts)
     .then(r => r.json())
-    .then(data => restaurantsSelector(data))
+    .then(data => {
+      if (page === 1 && query.q) {
+        const location = locationSelector(data)
+        if (location) {
+          dispatch(setMapCenters(location.latitude, location.longitude))
+        }
+      }
+      else if (query.lat && query.lon) {
+        dispatch(setMapCenters(query.lat, query.lon))
+      }
+
+      return restaurantsSelector(data)
+    })
 }
 
 export const loadRestaurants = () => (dispatch, getState) => {
-  const { restaurants: { loading, page, items } } = getState()
+  let { restaurants: { loading, nextPage, items } } = getState()
 
   if (loading) {
     return
   }
 
-  if (items.length) {
+  if (nextPage !== 1 && items.length) {
     dispatch(receiveRestaurantsFromCache())
-    fetchRestaurants(page + 1, dispatch, getState)
+    return fetchRestaurants(nextPage + 1, dispatch, getState)
       .then(restaurants => {
         dispatch(cacheRestaurants(restaurants))
       })
   }
   else {
-    fetchRestaurants(page, dispatch, getState)
+    return fetchRestaurants(nextPage, dispatch, getState)
       .then(restaurants => dispatch(receiveRestaurants(restaurants)))
-      .then(() => fetchRestaurants(page + 1, dispatch, getState))
+      .then(() => fetchRestaurants(nextPage + 1, dispatch, getState))
       .then(restaurants => dispatch(cacheRestaurants(restaurants)))
   }
 }
 
-export const showRestaurantDetails = restaurant => ({ type: SHOW_RESTAURANT_DETAILS, restaurant })
-export const highlightRestaurant = restaurant => ({ type: HIGHLIGHT_RESTAURANT, restaurant })
+export const searchRestaurants = ({ keyword }) => (dispatch) => {
+  dispatch(setQuery({ q: keyword }))
+  return dispatch(loadRestaurants())
+}

@@ -28,13 +28,14 @@ body {
 
 .restaurant-list {
   background: darkcyan;
-  height: calc(100vh - 112px);
+  height: calc(100vh - 166px);
   overflow-y: auto;
+  font-size: .9em;
 }
 
 .map-container {
   width: 100%;
-  height: calc(100vh - 112px);
+  height: calc(100vh - 166px);
 }
 
 .restaurant-item {

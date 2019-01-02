@@ -5,7 +5,7 @@ import RestaurantDetails from '../containers/RestaurantDetails'
 import Modal from '../components/Modal'
 import Header from '../components/Header'
 import Map from '../components/Map'
-import config from '../config';
+import config from '../config'
 import {
   loadRestaurants,
   showRestaurantDetails
@@ -19,16 +19,18 @@ class App extends React.Component {
   }
 
   render() {
-    const { application, restaurants, query, dispatch } = this.props
+    const { application, restaurants, dispatch } = this.props
 
     const mapOptions = {
       APIKey: config.googleAPIKey,
       center: {
-        lat: query.lat,
-        lng: query.lng
+        lat: application.mapCenters.lat,
+        lng: application.mapCenters.lng
       },
       zoom: config.mapZoom
     }
+
+    const renderMap = application.mapCenters.lat && application.mapCenters.lng
 
     return (
       <React.Fragment>
@@ -38,16 +40,19 @@ class App extends React.Component {
           body={<RestaurantDetails restaurant={application.restaurant} />} />
         <div className="container-fluid">
           <Header />
-          <div className="slide py-3">
+          <div className="slide pb-3">
             <div className="slide-content">
               <div className="list pr-2">
                 <RestaurantList />
                 <p className="mt-3">Loaded {restaurants.items.length} items</p>
               </div>
               <div className="map pl-0">
-                <Map
-                  options={mapOptions}
-                  restaurants={restaurants.items} />
+                {
+                  renderMap
+                  && <Map
+                    options={mapOptions}
+                    restaurants={restaurants.items} />
+                }
               </div>
             </div>
           </div>

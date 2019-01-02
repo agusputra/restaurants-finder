@@ -1,73 +1,82 @@
 import { combineReducers } from 'redux'
-import {
-  REQUEST_RESTAURANTS,
-  RECEIVE_RESTAURANTS,
-  RECEIVE_RESTAURANTS_FROM_CACHE,
-  CACHE_RESTAURANTS,
-  SHOW_RESTAURANT_DETAILS,
-  HIGHLIGHT_RESTAURANT
-} from './actions'
+import * as acts from './actions'
 
 const restaurants = (state, action) => {
   state = state === undefined
-    ? { loding: false, page: 1, items: [], cache: [], next: true }
+    ? { loading: false, nextPage: 1, items: [], cache: [], next: true }
     : state
 
   switch (action.type) {
-    case REQUEST_RESTAURANTS:
+    case acts.requestRestaurants.type:
       return {
         ...state,
         loading: true
       }
-    case RECEIVE_RESTAURANTS_FROM_CACHE:
+    case acts.receiveRestaurantsFromCache.type:
       return {
         ...state,
-        page: state.page + 1,
+        nextPage: state.nextPage + 1,
         items: state.items.concat(state.cache),
         cache: [],
       }
-    case RECEIVE_RESTAURANTS:
+    case acts.receiveRestaurants.type:
       return {
         ...state,
         loading: false,
-        page: state.page + 1,
+        nextPage: state.nextPage + 1,
         items: action.restaurants
       }
-    case CACHE_RESTAURANTS:
+    case acts.cacheRestaurants.type:
       return {
         ...state,
         loading: false,
         cache: action.restaurants,
         next: action.restaurants.length
       }
+    case acts.setQuery.type:
+      return {
+        ...state,
+        nextPage: 1,
+        items: [],
+        cache: []
+      }
     default:
       return state
   }
 }
 
-const application = (state = {}, action) => {
+const application = (state = { mapCenters: {} }, action) => {
   switch (action.type) {
-    case SHOW_RESTAURANT_DETAILS:
+    case acts.showRestaurantDetails.type:
       return {
         ...state,
         restaurant: action.restaurant ? { ...action.restaurant } : undefined
       }
-    case HIGHLIGHT_RESTAURANT:
+    case acts.highlightRestaurant.type:
       return {
         ...state,
         highlightRestaurant: action.restaurant ? { ...action.restaurant } : undefined
+      }
+    case acts.setMapCenters.type:
+      return {
+        ...state,
+        mapCenters: {
+          lat: parseFloat(action.lat),
+          lng: parseFloat(action.lng)
+        }
       }
     default:
       return state
   }
 }
 
-const query = (state, action) => {
-  state = state === undefined
-    ? { lat: 28.6139, lng: 77.2090 }
-    : state
-
-  return state
+const query = (state = {}, action) => {
+  switch (action.type) {
+    case acts.setQuery.type:
+      return action.query
+    default:
+      return state
+  }
 }
 
 export default combineReducers({ application, restaurants, query })

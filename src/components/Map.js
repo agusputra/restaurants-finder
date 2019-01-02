@@ -7,8 +7,8 @@ export default ({ options, restaurants }) => {
     <div className="map-container">
       <GoogleMap
         bootstrapURLKeys={{ key: options.APIKey }}
-        defaultCenter={options.center}
-        defaultZoom={options.zoom}>
+        center={options.center}
+        zoom={options.zoom}>
         {
           restaurants.map(restaurant =>
             <Marker
@@ -20,5 +20,5 @@ export default ({ options, restaurants }) => {
         }
       </GoogleMap>
     </div>
-  );
+  )
 }

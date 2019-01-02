@@ -1,4 +1,18 @@
 export default {
+  createAction: (type, ...argNames) => {
+    const actionCreator = (...args) => {
+      args = argNames.reduce((accumulator, value, index) => {
+        accumulator[value] = args[index]
+        return accumulator
+      }, {})
+
+      return { type: type, ...args }
+    }
+
+    actionCreator.type = type
+
+    return actionCreator
+  },
   queryStrings(params) {
     return Object.keys(params).map(key => key + '=' + params[key]).join('&')
   },
