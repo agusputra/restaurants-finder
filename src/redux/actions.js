@@ -16,7 +16,7 @@ export const setMapCenters = createAction("setMapCenters", 'lat', 'lng')
 const restaurantsSelector = state => state.restaurants.map(item => item.restaurant)
 const locationSelector = createSelector(restaurantsSelector, items => items[0] ? items[0].location : undefined)
 
-const fetchRestaurants = (page, dispatch, getState) => {
+const fetchRestaurants = async (page, dispatch, getState) => {
   const root = 'https://developers.zomato.com/api/v2.1'
   const opts = {
     headers: {
@@ -38,24 +38,22 @@ const fetchRestaurants = (page, dispatch, getState) => {
 
   dispatch(requestRestaurants())
 
-  return fetch(utils.getUrl(root, 'search', query), opts)
-    .then(r => r.json())
-    .then(data => {
-      if (page === 1 && query.q) {
-        const location = locationSelector(data)
-        if (location) {
-          dispatch(setMapCenters(location.latitude, location.longitude))
-        }
-      }
-      else if (query.lat && query.lon) {
-        dispatch(setMapCenters(query.lat, query.lon))
-      }
+  const data = await fetch(utils.getUrl(root, 'search', query), opts).then(r => r.json())
 
-      return restaurantsSelector(data)
-    })
+  if (page === 1 && query.q) {
+    const location = locationSelector(data)
+    if (location) {
+      dispatch(setMapCenters(location.latitude, location.longitude))
+    }
+  }
+  else if (query.lat && query.lon) {
+    dispatch(setMapCenters(query.lat, query.lon))
+  }
+
+  return restaurantsSelector(data)
 }
 
-export const loadRestaurants = () => (dispatch, getState) => {
+export const loadRestaurants = () => async (dispatch, getState) => {
   let { restaurants: { loading, nextPage, items } } = getState()
 
   if (loading) {
@@ -64,16 +62,14 @@ export const loadRestaurants = () => (dispatch, getState) => {
 
   if (nextPage !== 1 && items.length) {
     dispatch(receiveRestaurantsFromCache())
-    return fetchRestaurants(nextPage + 1, dispatch, getState)
-      .then(restaurants => {
-        dispatch(cacheRestaurants(restaurants))
-      })
+    const restaurants = await fetchRestaurants(nextPage + 1, dispatch, getState)
+    return dispatch(cacheRestaurants(restaurants))
   }
   else {
-    return fetchRestaurants(nextPage, dispatch, getState)
-      .then(restaurants => dispatch(receiveRestaurants(restaurants)))
-      .then(() => fetchRestaurants(nextPage + 1, dispatch, getState))
-      .then(restaurants => dispatch(cacheRestaurants(restaurants)))
+    let restaurants = await fetchRestaurants(nextPage, dispatch, getState)
+    dispatch(receiveRestaurants(restaurants))
+    restaurants = await fetchRestaurants(nextPage + 1, dispatch, getState)
+    return dispatch(cacheRestaurants(restaurants))
   }
 }
 
